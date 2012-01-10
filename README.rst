@@ -5,7 +5,7 @@ pistil
 Simple multiprocessing toolkit. This is based on the `Gunicorn <http://gunicorn.org>`_ multiprocessing engine. 
 
 This library allows you to supervise multiple type of workers and chain
-supervisors. Gracefull, reload, signaling between workers is handled.  
+supervisors. Graceful, reload, signaling between workers is handled.
 
 
 Simple Arbiter launching one worker::
@@ -41,11 +41,11 @@ same worker on 3 os processes::
         a = PoolArbiter(conf, spec)
         a.run()
 
-A common use for that pattern is a tcp server tjhat share the same
+A common use for that pattern is a tcp server that share the same
 socket between them. For that purpose pistil provides the TcpArbiter and
 TcpSyncWorker and the GeventTcpWorker to use with gevent.
 
-Pistil allows you to mix diffrent kind of workers in an arbiter::
+Pistil allows you to mix different kind of workers in an arbiter::
 
     from pistil.arbiter import Arbiter
     from pistil.worker import Worker
@@ -125,7 +125,7 @@ You can also chain arbiters::
         arbiter.run()
 
 
-This examplelaunch a web server with 3 workers on port 5000 and another
+This example launches a web server with 3 workers on port 5000 and another
 worker fetching the welcome page hosted by this server::
 
 
@@ -143,5 +143,5 @@ worker fetching the welcome page hosted by this server::
     welcome world
 
 
-More documentation is comming. See also examples in the examples/
+More documentation is coming. See also examples in the examples/
 folder.
