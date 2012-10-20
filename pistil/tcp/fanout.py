@@ -1,6 +1,7 @@
 import struct
 import os
 import socket
+import json
 
 from pistil.tcp.arbiter import TcpArbiter
 from pistil.tcp.sync_worker import TcpSyncWorker
@@ -56,13 +57,15 @@ class Seller(object):
         close(sock)
 
 
-def factory(worker, num_workers=5, **your_conf):
+def factory(worker, num_workers=5, serializer=json.dumps, unserializer=json.loads, **your_conf):
     sockname = '/tmp/toto.sock'
     try:
         os.remove(sockname)
     except Exception:
         pass
     conf = {"num_workers": num_workers,
+            "serializer": serializer,
+            "unserializer": unserializer,
             "address": "unix:%s" % sockname,
             "fanout.worker": worker}
     conf.update(your_conf)
@@ -72,7 +75,6 @@ def factory(worker, num_workers=5, **your_conf):
 
 if __name__ == '__main__':
     import time
-    import json
     from pistil.worker import Worker as ClassicWorker
 
     class Test(Worker):
@@ -84,7 +86,7 @@ if __name__ == '__main__':
         def handle(self):
             self.conf['seller'].tell(msg="Hello world", age=42)
 
-    conf, seller = factory(Test, serializer=json.dumps, unserializer=json.loads)
+    conf, seller = factory(Test)
     conf['seller'] = seller
     specs = [
         (Foreman, 30, "supervisor", {}, "foreman"),
