@@ -9,6 +9,7 @@ from pistil.arbiter import Arbiter
 
 
 class Foreman(TcpArbiter):
+    "Launch and manage workers."
     def on_init(self, conf):
         TcpArbiter.on_init(self, conf)
         # we return a spec
@@ -33,7 +34,7 @@ class Worker(TcpSyncWorker):
         size = struct.unpack('i', read(sock, 4))[0]
         blob = read(sock, size)
         evt = self.conf['unserializer'](blob)
-        self.do_event(evt)
+        self.do_event(**evt)
         close(sock)
 
     def do_event(self, event):
@@ -75,13 +76,12 @@ if __name__ == '__main__':
     from pistil.worker import Worker as ClassicWorker
 
     class Test(Worker):
-        def do_event(self, event):
-            print self.pid, event
+        def do_event(self, msg, **args):
+            print self.pid, msg, args
             time.sleep(1)
 
     class Client(ClassicWorker):
         def handle(self):
-            self.alive = False
             self.conf['seller'].tell(msg="Hello world", age=42)
 
     conf, seller = factory(Test, serializer=json.dumps, unserializer=json.loads)
