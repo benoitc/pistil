@@ -35,7 +35,11 @@ class Worker(TcpSyncWorker):
         size = struct.unpack('i', read(sock, 4))[0]
         blob = read(sock, size)
         evt = self.conf['unserializer'](blob)
-        self.do_event(**evt)
+        response = self.do_event(**evt)
+        if response is not None:
+            blob = self.conf['serializer'](response)
+            sock.sendall(struct.pack('i', len(blob)))
+            sock.sendall(blob)
         close(sock)
 
     def do_event(self, event):
@@ -43,9 +47,10 @@ class Worker(TcpSyncWorker):
 
 
 class Seller(object):
-    def __init__(self, address, serialize):
+    def __init__(self, address, serialize, unserialize):
         self.address = parse_address(address)
         self.serialize = serialize
+        self.unserialize = unserialize
 
     def tell(self, **msg):
         "tell something to the factory, don't wait for answer"
@@ -54,7 +59,16 @@ class Seller(object):
         blob = self.serialize(msg)
         sock.sendall(struct.pack('i', len(blob)))
         sock.sendall(blob)
-        close(sock)
+
+    def ask(self, **msg):
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.connect(self.address)
+        blob = self.serialize(msg)
+        sock.sendall(struct.pack('i', len(blob)))
+        sock.sendall(blob)
+        size = struct.unpack('i', read(sock, 4))[0]
+        blob = read(sock, size)
+        return self.unserialize(blob)
 
 
 def factory(worker, num_workers=5, serializer=json.dumps, unserializer=json.loads, **your_conf):
@@ -69,7 +83,7 @@ def factory(worker, num_workers=5, serializer=json.dumps, unserializer=json.load
             "address": "unix:%s" % sockname,
             "fanout.worker": worker}
     conf.update(your_conf)
-    seller = Seller(conf['address'], conf['serializer'])
+    seller = Seller(conf['address'], conf['serializer'], conf['unserializer'])
     return conf, seller
 
 
