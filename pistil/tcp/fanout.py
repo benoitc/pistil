@@ -58,7 +58,7 @@ class Seller(object):
 
 
 def factory(worker, num_workers=5, serializer=json.dumps, unserializer=json.loads, **your_conf):
-    sockname = '/tmp/toto.sock'
+    sockname = '/tmp/toto.sock'  # TODO more dynamic name.
     try:
         os.remove(sockname)
     except Exception:
