@@ -77,7 +77,7 @@ class UnixSocket(BaseSocket):
     def __init__(self, conf, fd=None):
         if fd is None:
             try:
-                os.remove(conf.address)
+                os.remove(conf['address'])
             except OSError:
                 pass
         super(UnixSocket, self).__init__(conf, fd=fd)
